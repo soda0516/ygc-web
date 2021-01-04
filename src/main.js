@@ -4,13 +4,24 @@ import 'normalize.css/normalize.css' // A modern alternative to CSS resets
 
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
-import locale from 'element-ui/lib/locale/lang/en' // lang i18n
-
+// import locale from 'element-ui/lib/locale/lang/en' // lang i18n
+import cnlocale from 'element-ui/lib/locale/lang/zh-CN'
+import request from './utils/request'
+import {
+  getAreaRegionList,
+  getProductCategoryListDetailList,
+  getProductSubjectList,
+  getOrderOperTypeList,
+  getOrderTypeList,
+  getProductOptionList,
+  getAreaCenterListById,
+  getAreaStationListById,
+  getOperTypeList } from './utils/api-request'
 import '@/styles/index.scss' // global css
-
 import App from './App'
 import store from './store'
 import router from './router'
+import axios from 'axios'
 
 import '@/icons' // icon
 import '@/permission' // permission control
@@ -29,11 +40,23 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // set ElementUI lang to EN
-Vue.use(ElementUI, { locale })
+Vue.use(ElementUI, { cnlocale })
 // 如果想要中文版 element-ui，按如下方式声明
-// Vue.use(ElementUI)
+// Vue.use(ElementUI)cnlocale
 
 Vue.config.productionTip = false
+Vue.prototype.$request = request
+Vue.prototype.$axios = axios
+
+Vue.prototype.$getAreaRegionList = getAreaRegionList
+Vue.prototype.$getProductCategoryListDetailList = getProductCategoryListDetailList
+Vue.prototype.$getProductSubjectList = getProductSubjectList
+Vue.prototype.$getOrderOperTypeList = getOrderOperTypeList
+Vue.prototype.$getOrderTypeList = getOrderTypeList
+Vue.prototype.$getProductOptionList = getProductOptionList
+Vue.prototype.$getAreaCenterListById = getAreaCenterListById
+Vue.prototype.$getAreaStationListById = getAreaStationListById
+Vue.prototype.$getOperTypeList = getOperTypeList
 
 new Vue({
   el: '#app',
