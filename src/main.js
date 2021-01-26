@@ -16,7 +16,14 @@ import {
   getProductOptionList,
   getAreaCenterListById,
   getAreaStationListById,
-  getOperTypeList } from './utils/api-request'
+  getOperTypeList,
+  getProductCategoryList,
+  getProductModelList,
+  getProductDescList,
+  getProductSpecList,
+  getProductDetailList,
+  getStoreInfoList } from './utils/api-request'
+import { parseDateFull } from './utils/commons-util'
 import '@/styles/index.scss' // global css
 import App from './App'
 import store from './store'
@@ -24,7 +31,8 @@ import router from './router'
 import axios from 'axios'
 
 import '@/icons' // icon
-import '@/permission' // permission control
+import '@/permission'
+// import { getStoreInfoList } from '@/utils/api-request' // permission control
 
 /**
  * If you don't want to use mock-server
@@ -47,6 +55,7 @@ Vue.use(ElementUI, { cnlocale })
 Vue.config.productionTip = false
 Vue.prototype.$request = request
 Vue.prototype.$axios = axios
+Vue.prototype.$store = store
 
 Vue.prototype.$getAreaRegionList = getAreaRegionList
 Vue.prototype.$getProductCategoryListDetailList = getProductCategoryListDetailList
@@ -57,6 +66,13 @@ Vue.prototype.$getProductOptionList = getProductOptionList
 Vue.prototype.$getAreaCenterListById = getAreaCenterListById
 Vue.prototype.$getAreaStationListById = getAreaStationListById
 Vue.prototype.$getOperTypeList = getOperTypeList
+Vue.prototype.$getProductCategoryList = getProductCategoryList
+Vue.prototype.$getProductModelList = getProductModelList
+Vue.prototype.$getProductDescList = getProductDescList
+Vue.prototype.$getProductSpecList = getProductSpecList
+Vue.prototype.$getProductDetailList = getProductDetailList
+Vue.prototype.binParseDateFull = parseDateFull
+Vue.prototype.$getStoreInfoList = getStoreInfoList
 
 new Vue({
   el: '#app',

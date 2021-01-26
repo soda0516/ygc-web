@@ -1,8 +1,7 @@
 <template>
-  <div>
-    <OrderInternalSearchForm ref="OrderInternalSearchFormRef" :order-type="orderType" @init="initOrderList" @initPage="initPage" />
+  <div v-loading="loading">
+    <OrderInternalSearchForm v-if="!today" ref="OrderInternalSearchFormRef" :order-type="orderType" @init="initOrderList" @initPage="initPage" />
     <el-table
-      v-loading="loading"
       :data="tableData"
       style="width: 100%"
       border
@@ -132,6 +131,7 @@ import OrderInternalSearchForm from './OrderInternalSearchForm'
 export default {
   name: 'OrderInternalModifyForm',
   components: { OrderInternalSearchForm, OrderInternalForm },
+  props: ['today'],
   data() {
     return {
       dialogTitle: '调拨单修改',
@@ -150,20 +150,31 @@ export default {
       },
       subjectList: [],
       orderTypeList: [],
-      orderOperTypeList: []
+      orderOperTypeList: [],
+      searchData: {
+        startDate: '',
+        endDate: '',
+        selectedRegion: '',
+        selectedSubject: '',
+        wellName: '',
+        orderType: '',
+        operItemOrRemark: '',
+        productDetailIds: []
+      }
     }
   },
   mounted() {
     this.loading = true
+    var that = this
     var searchVar = this.$refs.OrderInternalSearchFormRef.searchData
     this.$axios.all([this.initOrderListReturn(searchVar), this.initSubjectList(), this.initOrderTypeListReturn(), this.initOrderOperTypeListReturn()])
       .then(this.$axios.spread((res1, res2, res3, res4) => {
-        this.tableData = res1.data.data.records
-        this.paginationData.pageSize = res1.data.data.size
-        this.paginationData.pageTotal = res1.data.data.total
-        this.subjectList = res2.data.data
-        this.orderTypeList = res3.data.data
-        this.orderOperTypeList = res4.data.data
+        this.tableData = res1.data.records
+        this.paginationData.pageSize = res1.data.size
+        this.paginationData.pageTotal = res1.data.total
+        this.subjectList = res2.data
+        this.orderTypeList = res3.data
+        this.orderOperTypeList = res4.data
       }))
       .finally(() => {
         this.rowspan()
@@ -175,47 +186,52 @@ export default {
   },
   methods: {
     initSubjectList() {
-      return this.$axios.get('http://127.0.0.1:8080/product/productSubject/list/subject')
+      return this.$request.get('/product/productSubject/list/subject')
     },
     initOrderList() {
-      var searchVar = this.$refs.OrderInternalSearchFormRef.searchData
-      this.$axios({
-        url: 'http://127.0.0.1:8080/order/orderInternalDetail/page/detail',
+      var searchVar = ''
+      if (this.today) {
+        searchVar = this.searchData
+      } else {
+        searchVar = this.$refs.OrderInternalSearchFormRef.searchData
+      }
+      this.loading = true
+      this.$request({
+        url: '/order/orderInternalDetail/page/detail',
         method: 'get',
         params: {
+          today: this.today,
           searchData: searchVar,
           currentPage: this.paginationData.currentPage,
           pages: this.paginationData.pageSize
         }
       }).then((res) => {
-        this.tableData = res.data.data.records
-        this.paginationData.pageSize = res.data.data.size
-        this.paginationData.pageTotal = res.data.data.total
+        this.tableData = res.data.records
+        this.paginationData.pageSize = res.data.size
+        this.paginationData.pageTotal = res.data.total
       }).finally(() => {
         this.rowspan()
-        clearTimeout(this.timer) // 清除延迟执行
-        this.timer = setTimeout(() => {
-          this.loading = false
-        }, 500)
+        this.loading = false
       })
     },
     initOrderTypeListReturn() {
-      return this.$axios({
-        url: 'http://127.0.0.1:8080/order/commons/orderType/list',
+      return this.$request({
+        url: '/order/commons/orderType/list',
         method: 'get'
       })
     },
     initOrderOperTypeListReturn() {
-      return this.$axios({
-        url: 'http://127.0.0.1:8080/order/commons/operType/list',
+      return this.$request({
+        url: '/order/commons/operType/list',
         method: 'get'
       })
     },
     initOrderListReturn(searchVar) {
-      return this.$axios({
-        url: 'http://127.0.0.1:8080/order/orderInternalDetail/page/detail',
+      return this.$request({
+        url: '/order/orderInternalDetail/page/detail',
         method: 'get',
         params: {
+          today: this.today,
           searchData: searchVar,
           currentPage: this.paginationData.currentPage,
           pages: this.paginationData.pageSize
@@ -341,12 +357,15 @@ export default {
     },
     deleteOrderIn(id) {
       this.loading = true
-      this.$axios.delete('http://127.0.0.1:8080/order/orderInternal/' + id)
+      this.$request.delete('/order/orderInternal/' + id)
         .then((res) => {
           this.initOrderList()
         })
         .finally(() => {
-          this.loading = false
+          clearTimeout(this.timer) // 清除延迟执行
+          this.timer = setTimeout(() => {
+            this.loading = false
+          }, 500)
         })
     },
     initPage(number) {

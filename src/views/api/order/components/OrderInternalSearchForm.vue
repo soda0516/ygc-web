@@ -15,6 +15,8 @@
             :picker-options="pickerOptions"
             style="width: 100%;"
             value-format="yyyy-MM-dd"
+            :editable="false"
+            clearable
           />
         </el-form-item>
       </el-col>
@@ -27,6 +29,8 @@
             :picker-options="pickerOptions"
             style="width: 100%;"
             value-format="yyyy-MM-dd"
+            :editable="false"
+            clearable
           />
         </el-form-item>
       </el-col>
@@ -169,8 +173,8 @@ export default {
   },
   mounted() {
     console.log(this.orderType)
-    this.$axios.all([this.$getProductOptionList(), this.$getProductSubjectList(), this.$getOrderTypeList(), this.$getOperTypeList()])
-      .then(this.$axios.spread((res1, res2, res3, res4) => {
+    this.$request.all([this.$getProductOptionList(), this.$getProductSubjectList(), this.$getOrderTypeList(), this.$getOperTypeList()])
+      .then(this.$request.spread((res1, res2, res3, res4) => {
         this.productList = res1.data.data
         this.subjectList = res2.data.data
         this.orderTypeList = res3.data.data
@@ -184,16 +188,16 @@ export default {
   },
   methods: {
     // initSubjectList() {
-    //   return this.$axios.get('http://127.0.0.1:8080/product/productSubject/list/subject')
+    //   return this.$request.get('/product/productSubject/list/subject')
     // },
     // initOrderTypeReturn() {
-    //   return this.$axios.get('http://127.0.0.1:8080/order/commons/orderType/list')
+    //   return this.$request.get('/order/commons/orderType/list')
     // },
     // initProductOption() {
-    //   return this.$axios.get('http://127.0.0.1:8080/product/productCategory/list/detail')
+    //   return this.$request.get('/product/productCategory/list/detail')
     // },
     // initOperType() {
-    //   return this.$axios.get('http://127.0.0.1:8080/order/commons/operType/list')
+    //   return this.$request.get('/order/commons/operType/list')
     // },
     productChange() {
       this.searchData.productDetailIds = []

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <OrderInOutSearchForm ref="OrderInOutSearchFormRef" :order-type="orderType" @init="initOrderList" @initPage="initPage" />
+    <OrderInOutSearchForm v-if="!today" ref="OrderInOutSearchFormRef" :order-type="orderType" @init="initOrderList" @initPage="initPage" />
     <el-table
       v-loading="loading"
       :data="tableData"
@@ -11,7 +11,7 @@
       :cell-style="{'text-align':'center'}"
       :span-method="objectSpanMethod"
     >
-      <el-table-column label="操作" width="150px" fixed>
+      <el-table-column label="操作" width="150px">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -77,35 +77,25 @@
         label="管材规格型号"
         width="180"
         prop="product_name"
-        fixed="right"
       />
-      <!--      <el-table-column-->
-      <!--        label="井场数量"-->
-      <!--        width="70"-->
-      <!--        prop="detail_request_num"-->
-      <!--      />-->
       <el-table-column
         label="数量"
         width="60"
         prop="detail_actual_num"
-        fixed="right"
       />
       <el-table-column
         label="单价"
         width="80"
         prop="detail_unit_price"
-        fixed="right"
       />
       <el-table-column
         label="金额"
         width="80"
         prop="detail_total_fee"
-        fixed="right"
       />
       <el-table-column
         label="备注"
         prop="detail_remark"
-        fixed="right"
       />
     </el-table>
     <el-pagination
@@ -140,7 +130,7 @@ import OrderInOutSearchForm from './OrderInOutSearchForm'
 export default {
   name: 'OrderInOutModifyForm',
   components: { OrderInOutSearchForm, OrderInOutForm },
-  props: ['modifyType', 'orderType'],
+  props: ['modifyType', 'orderType', 'today'],
   data() {
     return {
       tableData: [],
@@ -162,32 +152,40 @@ export default {
       subjectList: [],
       regionAllList: [],
       centerAllList: [],
-      stationAllList: []
+      stationAllList: [],
+      searchData: {
+        startDate: '',
+        endDate: '',
+        selectedRegion: '',
+        selectedSubject: '',
+        wellName: '',
+        orderType: '',
+        operItemOrRemark: '',
+        productDetailIds: []
+      }
     }
   },
-  mounted() {
-    this.initOrderList()
-    this.$axios.all([this.$getOrderTypeList(), this.$getOrderOperTypeList(), this.$getProductSubjectList(), this.$getAreaRegionList(), this.$getAreaCenterListById(''), this.$getAreaStationListById('')])
-      .then(this.$axios.spread((orderTypeListRes, orderOrderOperTypeListRes, subjectRes, res4, res5, res6) => {
-        console.log('subjectRes:')
-        console.log(subjectRes)
-        this.orderTypeList = orderTypeListRes.data.data
-        this.orderOperTypeList = orderOrderOperTypeListRes.data.data
-        this.subjectList = subjectRes.data.data
-        this.regionAllList = res4.data.data
-        this.centerAllList = res5.data.data
-        this.stationAllList = res6.data.data
-        console.log(res4.data.data)
+  created() {
+    var that = this
+    this.$axios.all([that.$getProductSubjectList(), that.$getAreaRegionList(), that.$getAreaCenterListById(''), that.$getAreaStationListById('')])
+      .then(that.$axios.spread((subjectRes, res4, res5, res6) => {
+        that.subjectList = subjectRes.data
+        that.regionAllList = res4.data
+        that.centerAllList = res5.data
+        that.stationAllList = res6.data
+        console.log('this.subjectList')
+        console.log(this.subjectList)
       }))
     if (this.modifyType === 1) {
-      this.dialogTitle = '回收单修改'
-      this.orderType = 1
-      this.refreshOrderListUrl = 'http://127.0.0.1:8080/order/orderInDetail/page/detail'
-    } else if (this.modifyType === 2) {
-      this.dialogTitle = '出库单修改'
-      this.orderType = 2
-      this.refreshOrderListUrl = 'http://127.0.0.1:8080/order/orderOutDetail/page/detail'
+      that.dialogTitle = '回收单修改'
+      that.orderType = 1
+      that.refreshOrderListUrl = '/order/orderInDetail/page/detail'
+    } else if (that.modifyType === 2) {
+      that.dialogTitle = '出库单修改'
+      that.orderType = 2
+      that.refreshOrderListUrl = '/order/orderOutDetail/page/detail'
     }
+    that.initOrderList()
   },
   methods: {
     plusDetail() {
@@ -204,18 +202,6 @@ export default {
     initPage(number) {
       this.paginationData.currentPage = number
     },
-    // initOrderTypeListReturn() {
-    //   return this.$axios({
-    //     url: 'http://127.0.0.1:8080/order/commons/orderType/list',
-    //     method: 'get'
-    //   })
-    // },
-    // initOrderOperTypeListReturn() {
-    //   return this.$axios({
-    //     url: 'http://127.0.0.1:8080/order/commons/operType/list',
-    //     method: 'get'
-    //   })
-    // },
     formatterOrderType(row, col) {
       for (let i = 0; i < this.orderTypeList.length; i++) {
         if (row.order_order_type === this.orderTypeList[i].value) {
@@ -261,33 +247,33 @@ export default {
     initOrderList(searchData) {
       console.log('this.modifyType111111111111' + this.modifyType)
       if (this.modifyType === 1) {
-        this.refreshOrderListUrl = 'http://127.0.0.1:8080/order/orderInDetail/page/detail'
+        this.refreshOrderListUrl = '/order/orderInDetail/page/detail'
       } else if (this.modifyType === 2) {
-        this.refreshOrderListUrl = 'http://127.0.0.1:8080/order/orderOutDetail/page/detail'
+        this.refreshOrderListUrl = '/order/orderOutDetail/page/detail'
       }
       console.log(this.refreshOrderListUrl)
       if (this.refreshOrderListUrl.trim() !== '') {
+        if (!searchData) {
+          searchData = this.searchData
+        }
         this.loading = true
-        var searchVar = this.$refs.OrderInOutSearchFormRef.searchData
-        this.$axios({
+        this.$request({
           url: this.refreshOrderListUrl,
           method: 'get',
           params: {
-            searchData: JSON.stringify(searchVar),
+            today: this.today,
+            searchData: JSON.stringify(searchData),
             currentPage: this.paginationData.currentPage,
             pages: this.paginationData.pageSize
           }
         }).then(res => {
           console.log(res)
-          this.tableData = res.data.data.records
-          this.paginationData.pageSize = res.data.data.size
-          this.paginationData.pageTotal = res.data.data.total
+          this.tableData = res.data.records
+          this.paginationData.pageSize = res.data.size
+          this.paginationData.pageTotal = res.data.total
         }).finally(() => {
           this.rowspan()
-          clearTimeout(this.timer) // 清除延迟执行
-          this.timer = setTimeout(() => {
-            this.loading = false
-          }, 500)
+          this.loading = false
         })
       }
     },
@@ -355,7 +341,6 @@ export default {
     handleEdit(index, value) {
       this.modifyOrderId = value.order_id
       this.dialogVisible = true
-      // this.$refs.OrderInOutModifyFormRef.initFromModify(value.order_id)
     },
     initDialog() {
       this.$nextTick(() => {
@@ -384,12 +369,12 @@ export default {
       this.loading = true
       var url
       if (this.modifyType === 1) {
-        url = 'http://127.0.0.1:8080/order/orderIn/'
+        url = '/order/orderIn/'
       } else if (this.modifyType === 2) {
-        url = 'http://127.0.0.1:8080/order/orderOut/'
+        url = '/order/orderOut/'
       }
       if (url) {
-        this.$axios.delete(url + id)
+        this.$request.delete(url + id)
           .then((res) => {
             this.initOrderList()
           })

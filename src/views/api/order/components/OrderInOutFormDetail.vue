@@ -80,8 +80,7 @@ export default {
       deep: true
     }
   },
-  mounted() {
-    console.log('OrderInOutFormDetail')
+  created() {
     if (this.detailItem.id) {
       this.formDataDetail = this.detailItem
       var list = []
@@ -89,6 +88,8 @@ export default {
       list.push(this.formDataDetail.productId)
       this.value = list
     }
+  },
+  mounted() {
   },
   methods: {
     handleChange() {

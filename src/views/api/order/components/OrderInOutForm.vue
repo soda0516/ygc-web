@@ -70,6 +70,8 @@
             :picker-options="pickerOptions"
             style="width: 100%;"
             value-format="yyyy-MM-dd"
+            :editable="false"
+            clearable
           />
         </el-form-item>
       </el-col>
@@ -231,17 +233,16 @@ export default {
       }
     }
   },
-  mounted() {
-    console.log('mounted')
-    // this.initProductOption()
-    // this.initRegion()
-    // this.initSubjectList()
+  created() {
     this.loading = true
     this.$axios.all([this.$getProductOptionList(), this.$getAreaRegionList(), this.$getProductSubjectList()])
-      .then(this.$axios.spread((res1, res2, res3, res4, res5) => {
-        this.productList = res1.data.data
-        this.regionList = res2.data.data
-        this.subjectList = res3.data.data
+      .then(this.$axios.spread((res1, res2, res3) => {
+        console.log(res1)
+        console.log(res2)
+        console.log(res3)
+        this.productList = res1.data
+        this.regionList = res2.data
+        this.subjectList = res3.data
       }))
       .finally(() => {
         this.orderFormData.orderType = this.orderType
@@ -259,6 +260,8 @@ export default {
         this.loading = false
       })
   },
+  mounted() {
+  },
   methods: {
     plusDetail() {
       var index = this.detailList.length
@@ -271,62 +274,16 @@ export default {
         this.detailList.pop()
       }
     },
-    // initSubjectList() {
-    //   this.$axios.get('http://127.0.0.1:8080/product/productSubject/list/subject')
-    //     .then((res) => {
-    //       this.subjectList = res.data.data
-    //       if (this.orderType === 2) {
-    //         this.subjectList.shift()
-    //         this.subjectList.pop()
-    //         this.subjectList.pop()
-    //       }
-    //     })
-    //     .finally((res) => {
-    //     })
-    // },
-    // listRegionReturn() {
-    //   return this.$axios.get('http://127.0.0.1:8080/area/areaRegion/list/all')
-    // },
-    // initRegion() {
-    //   this.$axios.get('http://127.0.0.1:8080/area/areaRegion/list/all')
-    //     .then((res) => {
-    //       this.regionList = res.data.data
-    //     })
-    // },
-    // initProductOption() {
-    //   this.$axios.get('http://127.0.0.1:8080/product/productCategory/list/detail')
-    //     .then((res) => {
-    //       this.productList = res.data.data
-    //     })
-    // },
-    // listCenterByIdReturn(id) {
-    //   return this.$axios.get('http://127.0.0.1:8080/area/areaCenter/list/' + id)
-    // },
-    // listCenterById(id) {
-    //   this.$axios.get('http://127.0.0.1:8080/area/areaCenter/list/' + id)
-    //     .then((res) => {
-    //       this.centerList = res.data.data
-    //     })
-    // },
     regionChange(value) {
       this.selectCenterId = ''
       this.selectStationId = ''
       this.orderFormData.regionId = value
       this.$getAreaCenterListById(value)
         .then((res) => {
-          this.centerList = res.data.data
+          console.log(res)
+          this.centerList = res.data
         })
-      // this.listCenterById(value.id)
     },
-    // listStationByIdReturn(id) {
-    //   return this.$axios.get('http://127.0.0.1:8080/area/areaStation/list/' + id)
-    // },
-    // listStationById(id) {
-    //   this.$axios.get('http://127.0.0.1:8080/area/areaStation/list/' + id)
-    //     .then((res) => {
-    //       this.stationList = res.data.data
-    //     })
-    // },
     centerChange(value) {
       this.selectStationId = ''
       this.orderFormData.centerId = value
@@ -367,13 +324,13 @@ export default {
       }
       var url = ''
       if (this.orderType === 1) {
-        url = 'http://127.0.0.1:8080/order/orderIn'
+        url = '/order/orderIn'
       } else if (this.orderType === 2) {
-        url = 'http://127.0.0.1:8080/order/orderOut'
+        url = '/order/orderOut'
       }
       this.submitButtonLoading = true
       console.log(JSON.stringify(this.orderFormData))
-      this.$axios({
+      this.$request({
         url: url,
         method: 'post',
         params: {
@@ -391,29 +348,23 @@ export default {
             this.initFromModify(this.modifyOrderId)
           }
           this.submitButtonLoading = false
-        }, 1000)
+        }, 500)
       })
     },
     listOrder(id) {
       if (this.orderType === 1) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderIn/' + id)
+        return this.$request.get('/order/orderIn/' + id)
       } else if (this.orderType === 2) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderOut/' + id)
+        return this.$request.get('/order/orderOut/' + id)
       }
     },
     listOrderDetail(id) {
       if (this.orderType === 1) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderInDetail/list/' + id)
+        return this.$request.get('/order/orderInDetail/list/' + id)
       } else if (this.orderType === 2) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderOutDetail/list/' + id)
+        return this.$request.get('/order/orderOutDetail/list/' + id)
       }
     },
-    // listCenter() {
-    //   return this.$axios.get('http://127.0.0.1:8080/area/areaCenter/list')
-    // },
-    // listStation() {
-    //   return this.$axios.get('http://127.0.0.1:8080/area/areaStation/list')
-    // },
     initFromModify(id) {
       var that = this
       this.loading = true
@@ -422,13 +373,15 @@ export default {
         .then(this.$axios.spread((order, orderDetail) => {
           this.loading = true
           this.submitButtonLoading = true
-          var orderJson = order.data.data
+          var orderJson = order.data
+          console.log('orderDetail')
+          console.log(orderDetail)
           that.$axios.all([this.$getAreaRegionList(), this.$getAreaCenterListById(orderJson.regionId), this.$getAreaStationListById(orderJson.centerId)])
             .then(this.$axios.spread((regionList, centerList, stationList) => {
-              that.regionList = regionList.data.data
-              that.centerList = centerList.data.data
-              that.stationList = stationList.data.data
-              that.setSelectedArea(orderJson.regionId, orderJson.centerId, orderJson.stationId)
+              that.regionList = regionList.data
+              that.centerList = centerList.data
+              that.stationList = stationList.data
+              // that.setSelectedArea(orderJson.regionId, orderJson.centerId, orderJson.stationId)
             }))
             .finally(() => {
               this.orderFormData = orderJson
@@ -447,7 +400,7 @@ export default {
               } else {
                 this.selectStationId = ''
               }
-              this.detailList = orderDetail.data.data
+              this.detailList = orderDetail.data
               for (let i = 0; i < this.detailList.length; i++) {
                 this.detailList[i].detailRef = 'detailRef' + this.detailList[i].id
               }

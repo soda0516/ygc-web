@@ -55,6 +55,8 @@
             :picker-options="pickerOptions"
             style="width: 100%;"
             value-format="yyyy-MM-dd"
+            :editable="false"
+            clearable
           />
         </el-form-item>
       </el-col>
@@ -219,50 +221,24 @@ export default {
       }
     }
   },
-  mounted() {
+  created() {
+    var that = this
     this.loading = true
-    this.$axios.all([this.$getProductOptionList(), this.$getProductSubjectList(), this.$getOperTypeList()])
-      .then(this.$axios.spread((res1, res2, res3) => {
-        this.productList = res1.data.data
-        this.subjectList = res2.data.data
-        this.operTypeList = res3.data.data
+    that.$axios.all([that.$getProductOptionList(), that.$getProductSubjectList(), that.$getOperTypeList()])
+      .then(that.$axios.spread((res1, res2, res3) => {
+        that.productList = res1.data
+        that.subjectList = res2.data
+        that.operTypeList = res3.data
       }))
       .finally(() => {
-        this.orderTypeList.shift()
-        this.orderTypeList.shift()
-        this.operTypeList.shift()
-        this.operTypeList.shift()
-        this.loading = false
+        // that.orderTypeList.shift()
+        // that.orderTypeList.shift()
+        that.operTypeList.shift()
+        that.operTypeList.shift()
+        that.loading = false
       })
-    // if (this.modifyType === 1) {
-    //   this.dialogTitle = '回收单修改'
-    //   this.orderType = 1
-    //   this.refreshOrderListUrl = 'http://127.0.0.1:8080/order/orderInDetail/page/detail'
-    // } else if (this.modifyType === 2) {
-    //   this.dialogTitle = '出库单修改'
-    //   this.orderType = 2
-    //   this.refreshOrderListUrl = 'http://127.0.0.1:8080/order/orderOutDetail/page/detail'
-    // }
-    // this.$getProductOptionList()
-    // this.$getProductSubjectList()
-    // this.$getOperTypeList()
-    // if (this.modifyOrderId) {
-    //   this.initFromModify(this.modifyOrderId)
-    // }
   },
   methods: {
-    // initProductOption() {
-    //   this.$axios.get('http://127.0.0.1:8080/product/productCategory/list/detail')
-    //     .then((res) => {
-    //       this.productList = res.data.data
-    //     })
-    // },
-    // initSubjectList() {
-    //   this.$axios.get('http://127.0.0.1:8080/product/productSubject/list/subject')
-    //     .then((res) => {
-    //       this.subjectList = res.data.data
-    //     })
-    // },
     addSubjectChange() {
       // 如果是小队间转移和外部转移，增加科目和减少科目智能选择一个
       if (this.orderFormData.operType === 4 || this.orderFormData.operType === 5) {
@@ -302,8 +278,8 @@ export default {
       }
       this.submitButtonLoading = true
       console.log(formDataDetailList)
-      this.$axios({
-        url: 'http://127.0.0.1:8080/order/orderInternal',
+      this.$request({
+        url: '/order/orderInternal',
         method: 'post',
         params: {
           order: JSON.stringify(this.orderFormData),
@@ -320,14 +296,14 @@ export default {
             this.initFromModify(this.modifyOrderId)
           }
           this.submitButtonLoading = false
-        }, 1000)
+        }, 100)
       })
     },
     listOrder(id) {
-      return this.$axios.get('http://127.0.0.1:8080/order/orderInternal/' + id)
+      return this.$request.get('/order/orderInternal/' + id)
     },
     listOrderDetail(id) {
-      return this.$axios.get('http://127.0.0.1:8080/order/orderInternalDetail/list/order/' + id)
+      return this.$request.get('/order/orderInternalDetail/list/order/' + id)
     },
     initFromModify(id) {
       this.loading = true
@@ -336,9 +312,11 @@ export default {
         .then(this.$axios.spread((order, orderDetail) => {
           this.loading = true
           this.submitButtonLoading = true
-          var orderJson = order.data.data
+          var orderJson = order.data
+          console.log('JSON.stringify(orderJson)')
+          console.log(JSON.stringify(orderJson))
           this.orderFormData = orderJson
-          this.detailList = orderDetail.data.data
+          this.detailList = orderDetail.data
           for (let i = 0; i < this.detailList.length; i++) {
             this.detailList[i].detailRef = 'detailRef' + this.detailList[i].id
           }
@@ -361,9 +339,8 @@ export default {
           } else {
             this.selectOperType = ''
           }
-          if (this.orderFormData.operType === 6) {
+          if (this.orderFormData.operType === 6 || this.orderFormData.operType === 7) {
             this.selectAddSubjectId = 5
-            this.selectSubtractSubjectId = ''
             this.addSubjectLoading = true
           } else {
             this.addSubjectLoading = false
@@ -373,7 +350,7 @@ export default {
         })
     },
     operTypeChange() {
-      if (this.selectOperType === 6) {
+      if (this.selectOperType === 6 || this.selectOperType === 7) {
         this.selectAddSubjectId = 5
         this.selectSubtractSubjectId = ''
         this.addSubjectLoading = true

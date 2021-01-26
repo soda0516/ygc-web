@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <OrderInOutModifyForm :modify-type="modifyType" :order-type="orderType"/>
+    <OrderInOutModifyForm :modify-type="modifyType" :order-type="orderType" :today="false"/>
   </div>
 </template>
 

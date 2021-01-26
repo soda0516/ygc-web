@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <OrderInternalModifyForm/>
+    <OrderInternalModifyForm :today="false"/>
   </div>
 </template>
 

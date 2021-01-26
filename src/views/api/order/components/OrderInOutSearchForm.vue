@@ -16,6 +16,8 @@
             :picker-options="pickerOptions"
             style="width: 100%;"
             value-format="yyyy-MM-dd"
+            :editable="false"
+            clearable
           />
         </el-form-item>
       </el-col>
@@ -28,6 +30,8 @@
             :picker-options="pickerOptions"
             style="width: 100%;"
             value-format="yyyy-MM-dd"
+            :editable="false"
+            clearable
           />
         </el-form-item>
       </el-col>
@@ -162,9 +166,9 @@ export default {
   },
   methods: {
     initSubjectList() {
-      this.$axios.get('http://127.0.0.1:8080/product/productSubject/list/subject')
+      this.$request.get('/product/productSubject/list/subject')
         .then((res) => {
-          this.subjectList = res.data.data
+          this.subjectList = res.data
           if (this.orderType === 1) {
             this.searchData.selectedSubject = 1
             this.subjectDisabled = true
@@ -178,27 +182,25 @@ export default {
         })
     },
     listRegionReturn() {
-      return this.$axios.get('http://127.0.0.1:8080/area/areaRegion/list/all')
+      return this.$request.get('/area/areaRegion/list/all')
     },
     initRegion() {
-      this.$axios.get('http://127.0.0.1:8080/area/areaRegion/list/all')
+      this.$request.get('/area/areaRegion/list/all')
         .then((res) => {
-          this.regionList = res.data.data
+          this.regionList = res.data
         })
     },
     initProductOption() {
-      this.$axios.get('http://127.0.0.1:8080/product/productCategory/list/detail')
+      this.$request.get('/product/productCategory/list/detail')
         .then((res) => {
-          console.log('查找模块')
-          console.log(res)
-          this.productList = res.data.data
+          this.productList = res.data
         })
     },
     listCenterByIdReturn(id) {
-      return this.$axios.get('http://127.0.0.1:8080/area/areaCenter/list/' + id)
+      return this.$request.get('/area/areaCenter/list/' + id)
     },
     listCenterById(id) {
-      this.$axios.get('http://127.0.0.1:8080/area/areaCenter/list/' + id)
+      this.$request.get('/area/areaCenter/list/' + id)
         .then((res) => {
           this.centerList = res.data.data
         })
@@ -211,10 +213,10 @@ export default {
       this.listCenterById(value.id)
     },
     listStationByIdReturn(id) {
-      return this.$axios.get('http://127.0.0.1:8080/area/areaStation/list/' + id)
+      return this.$request.get('/area/areaStation/list/' + id)
     },
     listStationById(id) {
-      this.$axios.get('http://127.0.0.1:8080/area/areaStation/list/' + id)
+      this.$request.get('/area/areaStation/list/' + id)
         .then((res) => {
           this.stationList = res.data.data
         })
@@ -248,23 +250,23 @@ export default {
     },
     listOrder(id) {
       if (this.orderType === 1) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderIn/' + id)
+        return this.$request.get('/order/orderIn/' + id)
       } else if (this.orderType === 2) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderOut/' + id)
+        return this.$request.get('/order/orderOut/' + id)
       }
     },
     listOrderDetail(id) {
       if (this.orderType === 1) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderInDetail/list/' + id)
+        return this.$request.get('/order/orderInDetail/list/' + id)
       } else if (this.orderType === 2) {
-        return this.$axios.get('http://127.0.0.1:8080/order/orderOutDetail/list/' + id)
+        return this.$request.get('/order/orderOutDetail/list/' + id)
       }
     },
     listCenter() {
-      return this.$axios.get('http://127.0.0.1:8080/area/areaCenter/list')
+      return this.$request.get('/area/areaCenter/list')
     },
     listStation() {
-      return this.$axios.get('http://127.0.0.1:8080/area/areaStation/list')
+      return this.$request.get('/area/areaStation/list')
     },
     productChange() {
       this.searchData.productDetailIds = []
